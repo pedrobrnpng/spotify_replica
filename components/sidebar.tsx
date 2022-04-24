@@ -7,6 +7,7 @@ import {
   HeartIcon,
 } from '@heroicons/react/outline';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { playlistIdState } from '../atoms/playlistAtom';
@@ -16,6 +17,8 @@ function Sidebar() {
   const { data: session, status } = useSession();
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [playlistId, setPlaylistId] = useRecoilState(playlistIdState);
+
+  const router = useRouter();
 
   const spotifyApi = useSpotify();
 
@@ -27,10 +30,18 @@ function Sidebar() {
     }
   }, [session, spotifyApi]);
 
+  const changePlaylist = (id) => {
+    setPlaylistId(id);
+    router.push(`/playlist/${id}`);
+  };
+
   return (
     <div className="md:text-md hidden h-screen flex-col overflow-y-scroll border-r border-gray-900 p-5 pb-36 text-xs text-gray-500 scrollbar-hide sm:max-w-[12rem] md:inline-flex lg:max-w-[15rem] lg:text-sm">
       <div className="space-y-4">
-        <button className="flex items-center space-x-2 transition-all hover:text-white">
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center space-x-2 transition-all hover:text-white"
+        >
           <HomeIcon className="h-5 w-5" />
           <p>Home</p>
         </button>
@@ -60,7 +71,7 @@ function Sidebar() {
           <p
             className="cursor-pointer transition-all hover:text-white"
             key={playlist.id}
-            onClick={() => setPlaylistId(playlist.id)}
+            onClick={() => changePlaylist(playlist.id)}
           >
             {playlist.name}
           </p>
