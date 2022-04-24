@@ -12,7 +12,7 @@ function Login({ providers }: any) {
         <div key={provider.name}>
           <button
             onClick={() => signIn(provider.id, { callbackUrl: '/' })}
-            className="rounded-full bg-[#18D860] p-5 text-white"
+            className="rounded-full bg-spotify-green p-5 text-white"
           >
             Login with {provider.name}
           </button>
