@@ -15,7 +15,7 @@ export async function middleware(req: any) {
 
   url.pathname = '/'
 
-  if(token) {
+  if(token && pathname.includes === "/login") {
     return NextResponse.rewrite(url);
   }
 
@@ -24,7 +24,5 @@ export async function middleware(req: any) {
   if(!token && pathname.includes !== "/login"){
     return NextResponse.rewrite(url);
   }
-
-
 
 }
