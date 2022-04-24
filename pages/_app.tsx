@@ -5,21 +5,29 @@ import '../styles/globals.css';
 import Sidebar from '../components/sidebar';
 import Player from '../components/Player';
 import Profile from '../components/Profile';
+import { useRouter } from 'next/router';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+  const router = useRouter();
+  console.log(router);
+
   return (
     <SessionProvider session={session}>
       <RecoilRoot>
-        <div className="bg-black">
-          <main className="flex">
-            <Sidebar />
-            <Profile />
-            <Component {...pageProps} />
-          </main>
-          <div className="sticky bottom-0">
-            <Player />
+        {router.pathname !== '/login' ? (
+          <div className="bg-black">
+            <main className="flex">
+              <Sidebar />
+              <Profile />
+              <Component {...pageProps} />
+            </main>
+            <div className="sticky bottom-0">
+              <Player />
+            </div>
           </div>
-        </div>
+        ) : (
+          <Component {...pageProps} />
+        )}
       </RecoilRoot>
     </SessionProvider>
   );
