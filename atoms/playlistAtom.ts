@@ -9,8 +9,3 @@ export const playlistState = atom({
   key: 'playlistState',
   default: null,
 })
-
-export const playlistSongs = atom({
-  key: 'playlistSongs',
-  default: [],
-})
