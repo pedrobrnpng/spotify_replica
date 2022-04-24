@@ -15,6 +15,7 @@ import { currentTrackIdState, isPlayingState } from '../atoms/songAtom';
 import useSongInfo from '../hooks/useSongInfo';
 import useSpotify from '../hooks/useSpotify';
 import { debounce } from 'lodash';
+import { useRouter } from 'next/router';
 
 function Player() {
   const spotifyApi = useSpotify();
@@ -23,6 +24,8 @@ function Player() {
     useRecoilState(currentTrackIdState);
   const [isPlaying, setIsPlaying] = useRecoilState(isPlayingState);
   const [volume, setVolume] = useState(50);
+
+  const router = useRouter();
 
   const songInfo = useSongInfo();
 
@@ -77,8 +80,18 @@ function Player() {
           alt=""
         />
         <div>
-          <h3>{songInfo?.name}</h3>
-          <p>{songInfo?.artists[0]?.name}</p>
+          <h3
+            className="cursor-pointer text-white hover:underline"
+            onClick={() => router.push(`/album/${songInfo?.album.id}`)}
+          >
+            {songInfo?.name}
+          </h3>
+          <p
+            className="cursor-pointer text-gray-300 hover:underline"
+            onClick={() => router.push(`/artist/${songInfo?.artists[0].id}`)}
+          >
+            {songInfo?.artists[0]?.name}
+          </p>
         </div>
       </div>
       <div className="flex items-center justify-evenly">
