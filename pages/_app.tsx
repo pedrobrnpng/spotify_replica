@@ -9,7 +9,6 @@ import { useRouter } from 'next/router';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   const router = useRouter();
-  console.log(router);
 
   return (
     <SessionProvider session={session}>
