@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 @layer components {
-
   .button {
-    @apply h-5 w-5 cursor-pointer hover:scale-125 transition transform duration-100 ease-out;
+    @apply h-5 w-5 transform cursor-pointer transition duration-100 ease-out hover:scale-125;
+  }
+
+  .libraryButton {
+    @apply rounded-md px-4 py-3 font-semibold transition-all hover:bg-zinc-800;
   }
 }
