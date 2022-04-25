@@ -45,31 +45,31 @@ const Home: NextPage = () => {
       <section className="py-8">
         <h4 className="pb-8 text-xl text-white">Your recently Played Tracks</h4>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:gap-6">
           {recentlyPlayed.map((item: any) => (
             <div
               key={item.track.id}
-              className="group relative flex cursor-pointer flex-col items-center justify-center rounded-md bg-gray-900 py-4 px-4 transition-all hover:bg-gray-700"
+              className="group relative  flex cursor-pointer flex-col justify-center rounded-md bg-gray-900 py-4 px-4 transition-all hover:bg-gray-700"
               onClick={() => playSong(item.track)}
             >
               <img
-                className="h-36 w-36 rounded-sm"
+                className="rounded-sm"
                 src={item.track.album.images[0].url}
                 alt=""
               />
               <div className="pt-4">
-                <p className="w-32 truncate text-white">{item.track.name}</p>
+                <p className="truncate text-white">{item.track.name}</p>
                 <p
                   onClick={() =>
                     router.push(`/artist/${item.track.artists[0].id}`)
                   }
-                  className="w-32 truncate text-gray-400 hover:underline"
+                  className="truncate text-gray-400 hover:underline"
                 >
                   {item.track.artists[0].name}
                 </p>
               </div>
               <div className="absolute">
-                <PlayIcon className="hidden h-16 w-16 translate-y-10 translate-x-10 text-spotify-green group-hover:block" />
+                <PlayIcon className="hidden h-16 w-16 translate-x-20 translate-y-10 text-spotify-green group-hover:block" />
               </div>
             </div>
           ))}
