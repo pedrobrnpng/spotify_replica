@@ -1,10 +1,11 @@
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import useSpotify from '../hooks/useSpotify';
 
 function Library() {
   const spotifyApi = useSpotify();
   const [data, setData] = useState([]);
-  const [typeData, setTypeData] = useState('playlists');
+  const [typeData, setTypeData] = useState('playlist');
   const [loading, setLoading] = useState(true);
 
   const changeData = (e) => {
@@ -12,9 +13,11 @@ function Library() {
     setTypeData(id);
   };
 
+  const router = useRouter();
+
   useEffect(() => {
     setLoading(true);
-    if (typeData === 'playlists') {
+    if (typeData === 'playlist') {
       spotifyApi
         .getUserPlaylists()
         .then((data) => {
@@ -24,7 +27,7 @@ function Library() {
           console.log('something went wrong', err);
         });
     }
-    if (typeData === 'artists') {
+    if (typeData === 'artist') {
       spotifyApi
         .getFollowedArtists()
         .then((data) => {
@@ -34,7 +37,7 @@ function Library() {
           console.log('something went wrong', err);
         });
     }
-    if (typeData === 'albums') {
+    if (typeData === 'album') {
       spotifyApi
         .getMySavedAlbums()
         .then((data) => {
@@ -55,42 +58,48 @@ function Library() {
         <div className="h-screen overflow-y-scroll px-12 text-white scrollbar-hide">
           <header className="space-x-4 py-6 px-2">
             <button
-              id="playlists"
+              id="playlist"
               onClick={(e) => {
                 changeData(e);
               }}
               className={`libraryButton  ${
-                typeData === 'playlists' && 'bg-zinc-800'
+                typeData === 'playlist' && 'bg-zinc-800'
               }`}
             >
               Playlists
             </button>
             <button
-              id="artists"
+              id="artist"
               onClick={(e) => {
                 changeData(e);
               }}
               className={`libraryButton ${
-                typeData === 'artists' && 'bg-zinc-800'
+                typeData === 'artist' && 'bg-zinc-800'
               }`}
             >
               Artists
             </button>
             <button
-              id="albums"
+              id="album"
               onClick={(e) => {
                 changeData(e);
               }}
               className={`libraryButton ${
-                typeData === 'albums' && 'bg-zinc-900'
+                typeData === 'album' && 'bg-zinc-800'
               }`}
             >
               Albums
             </button>
           </header>
+          <h2 className="py-2 text-lg font-semibold capitalize">{typeData}s</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:gap-6">
             {data.map((item) => (
-              <div className="flex cursor-pointer flex-col rounded-md bg-zinc-900 p-4 transition-all hover:bg-zinc-800">
+              <div
+                onClick={() => {
+                  router.push(`/${typeData}/${item.id}`);
+                }}
+                className=" flex min-w-[20rem] max-w-[20rem] cursor-pointer flex-col rounded-md bg-zinc-900 p-4 transition-all hover:bg-zinc-800"
+              >
                 <div className="relative after:block after:pb-[100%]">
                   {!item?.images[0]?.url ? (
                     <div className="absolute flex h-full w-full items-center justify-center object-cover">
@@ -111,7 +120,7 @@ function Library() {
                   ) : (
                     <img
                       className={`absolute h-full w-full object-cover ${
-                        typeData === 'artists' ? 'rounded-full' : 'rounded-md'
+                        typeData === 'artist' ? 'rounded-full' : 'rounded-md'
                       }`}
                       src={item?.images[0]?.url}
                       alt={item.name}
@@ -119,13 +128,13 @@ function Library() {
                   )}
                 </div>
                 <div className="truncate pt-4 text-xl">{item.name}</div>
-                {typeData === 'playlists' && (
+                {typeData === 'playlist' && (
                   <p className="text-slate-300">Playlist</p>
                 )}
-                {typeData === 'artists' && (
+                {typeData === 'artist' && (
                   <p className="text-slate-300">Artist</p>
                 )}
-                {typeData === 'albums' && item.artists && (
+                {typeData === 'album' && item.artists && (
                   <p className="text-slate-300">{item?.artists[0]?.name}</p>
                 )}
               </div>
