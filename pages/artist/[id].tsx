@@ -2,6 +2,7 @@ import { PlayIcon } from '@heroicons/react/solid';
 import React, { useEffect, useState } from 'react';
 import Songs from '../../components/songs';
 import useSpotify from '../../hooks/useSpotify';
+import { separateNumberByComma } from '../../lib/number';
 
 function ArtistPage({ artistId }) {
   const [artist, setArtist] = useState(null);
@@ -23,7 +24,7 @@ function ArtistPage({ artistId }) {
           });
         })
         .then(() => {
-          spotifyApi.getArtistTopTracks(artistId, 'US').then((data) => {
+          spotifyApi.getArtistTopTracks(artistId, 'PT').then((data) => {
             setTopTracks(data.body.tracks.slice(0, 5));
           });
         })
@@ -38,7 +39,7 @@ function ArtistPage({ artistId }) {
   };
 
   return (
-    <section className="h-screen space-y-8 p-8 text-white">
+    <section className="h-screen w-full space-y-8 p-8 text-white">
       <header className="flex items-end space-x-8">
         <img
           className="h-48 w-48 rounded-full"
@@ -47,7 +48,10 @@ function ArtistPage({ artistId }) {
         />
         <div className="space-y-4">
           <h1 className="text-5xl font-bold">{artist?.name}</h1>
-          <p> {artist?.followers?.total} monthly listeners </p>
+          <p>
+            {' '}
+            {separateNumberByComma(artist?.followers?.total)} monthly listeners{' '}
+          </p>
         </div>
       </header>
       <div className="flex items-center space-x-8">
@@ -59,7 +63,7 @@ function ArtistPage({ artistId }) {
           {followArtist ? 'Following' : 'Follow'}
         </button>
       </div>
-      <div>
+      <div className="w-full">
         <h4 className="pb-8 text-2xl font-bold">Popular tracks</h4>
         <Songs songs={topTracks} />
       </div>
