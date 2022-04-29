@@ -2,34 +2,41 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import useSpotify from '../hooks/useSpotify';
 
+/**
+ * need to add infinite scroll
+ * @returns
+ */
+
 function Library() {
   const spotifyApi = useSpotify();
-  const [data, setData] = useState([]);
+  const [fetchData, setData] = useState([]);
   const [typeData, setTypeData] = useState('playlist');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [offset, setOffset] = useState(0);
 
-  const changeData = (e) => {
-    const { id } = e.target;
-    setTypeData(id);
+  const changeData = async (e) => {
+    setTypeData(e.target.id);
+    setData([]);
+    setOffset(0);
   };
 
-  const router = useRouter();
-
-  useEffect(() => {
+  const getData = async () => {
     setLoading(true);
+
     if (typeData === 'playlist') {
-      spotifyApi
-        .getUserPlaylists()
+      await spotifyApi
+        .getUserPlaylists({ limit: 10, offset })
         .then((data) => {
-          setData(data.body.items);
+          setData((old) => [...old, ...data.body.items]);
         })
         .catch((err) => {
           console.log('something went wrong', err);
         });
     }
     if (typeData === 'artist') {
-      spotifyApi
-        .getFollowedArtists()
+      await spotifyApi
+        .getFollowedArtists({ limit: 50 })
         .then((data) => {
           setData(data.body.artists.items);
         })
@@ -38,67 +45,88 @@ function Library() {
         });
     }
     if (typeData === 'album') {
-      spotifyApi
-        .getMySavedAlbums()
+      await spotifyApi
+        .getMySavedAlbums({ limit: 10, offset })
         .then((data) => {
-          setData(data.body.items.map((e) => e.album));
+          setData((old) => [...old, ...data.body.items.map((e) => e.album)]);
         })
         .catch((err) => {
           console.log('something went wrong', err);
         });
     }
+    setOffset(offset + 10);
+
     setLoading(false);
+  };
+
+  const handleScroll = async (e) => {
+    if (
+      window.innerHeight + e.target.documentElement.scrollTop >=
+      e.target.documentElement.scrollHeight
+    ) {
+      await getData();
+    }
+  };
+
+  const loadMore = async () => {
+    await getData();
+  };
+
+  useEffect(() => {
+    getData();
   }, [typeData]);
+
+  useEffect(() => {
+    setData([]);
+    getData();
+    // document.addEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <>
-      {loading ? (
-        <div className="flex items-center justify-center">Loading...</div>
-      ) : (
-        <div className="h-screen overflow-y-scroll px-12 text-white scrollbar-hide">
-          <header className="space-x-4 py-6 px-2">
-            <button
-              id="playlist"
-              onClick={(e) => {
-                changeData(e);
-              }}
-              className={`libraryButton  ${
-                typeData === 'playlist' && 'bg-zinc-800'
-              }`}
-            >
-              Playlists
-            </button>
-            <button
-              id="artist"
-              onClick={(e) => {
-                changeData(e);
-              }}
-              className={`libraryButton ${
-                typeData === 'artist' && 'bg-zinc-800'
-              }`}
-            >
-              Artists
-            </button>
-            <button
-              id="album"
-              onClick={(e) => {
-                changeData(e);
-              }}
-              className={`libraryButton ${
-                typeData === 'album' && 'bg-zinc-800'
-              }`}
-            >
-              Albums
-            </button>
-          </header>
-          <h2 className="py-2 text-lg font-semibold capitalize">{typeData}s</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:gap-6">
-            {data.map((item) => (
+      <div className="h-screen overflow-y-scroll px-12 text-white scrollbar-hide">
+        <header className="space-x-4 py-6 px-2">
+          <button
+            id="playlist"
+            onClick={(e) => {
+              changeData(e);
+            }}
+            className={`libraryButton  ${
+              typeData === 'playlist' && 'bg-zinc-800'
+            }`}
+          >
+            Playlists
+          </button>
+          <button
+            id="artist"
+            onClick={(e) => {
+              changeData(e);
+            }}
+            className={`libraryButton ${
+              typeData === 'artist' && 'bg-zinc-800'
+            }`}
+          >
+            Artists
+          </button>
+          <button
+            id="album"
+            onClick={(e) => {
+              changeData(e);
+            }}
+            className={`libraryButton ${typeData === 'album' && 'bg-zinc-800'}`}
+          >
+            Albums
+          </button>
+        </header>
+        <h2 className="py-2 text-lg font-semibold capitalize">{typeData}s</h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:gap-6">
+          {fetchData.length > 0 ? (
+            fetchData.map((item) => (
               <div
                 onClick={() => {
                   router.push(`/${typeData}/${item.id}`);
                 }}
-                className=" flex min-w-[20rem] max-w-[20rem] cursor-pointer flex-col rounded-md bg-zinc-900 p-4 transition-all hover:bg-zinc-800"
+                className=" flex max-w-[20rem] cursor-pointer flex-col rounded-md bg-zinc-900 p-4 transition-all hover:bg-zinc-800"
               >
                 <div className="relative after:block after:pb-[100%]">
                   {!item?.images[0]?.url ? (
@@ -138,10 +166,19 @@ function Library() {
                   <p className="text-slate-300">{item?.artists[0]?.name}</p>
                 )}
               </div>
-            ))}
-          </div>
+            ))
+          ) : (
+            <div> no data </div>
+          )}
         </div>
-      )}
+        <div className="flex justify-center py-4">
+          {!loading ? (
+            <button onClick={() => loadMore()}>Load More</button>
+          ) : (
+            <p> Loading ... </p>
+          )}
+        </div>
+      </div>
     </>
   );
 }
