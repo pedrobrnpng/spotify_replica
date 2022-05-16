@@ -7,8 +7,10 @@ module.exports = {
     extend: {
       colors: {
         'spotify-green': '#18D860',
+        pearl: '#E5E6E8',
+        'pearl-dark': '#d4d5d9',
       },
     },
   },
   plugins: [require('tailwind-scrollbar-hide')],
-}
+};
