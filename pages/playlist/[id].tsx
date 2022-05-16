@@ -49,10 +49,8 @@ function Playlist({ playlistId }) {
 }
 
 export async function getServerSideProps(ctx) {
-  const session = await getSession(ctx);
-
   return {
-    props: { playlistId: ctx.params.id, session },
+    props: { playlistId: ctx.params.id },
   };
 }
 
