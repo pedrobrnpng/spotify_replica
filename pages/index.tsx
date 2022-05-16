@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { currentTrackIdState } from '../atoms/songAtom';
+import RecentlyPlayed2 from '../components/RecentlyPlayed2';
 import useSpotify from '../hooks/useSpotify';
 
 const Home: NextPage = () => {
@@ -12,21 +13,39 @@ const Home: NextPage = () => {
 
   const router = useRouter();
 
-  const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [currentTrackId, setCurrentTrackId] =
     useRecoilState(currentTrackIdState);
+
+  const [topArtists, setTopArtists] = useState([]);
 
   const spotifyApi = useSpotify();
 
   useEffect(() => {
     if (spotifyApi.getAccessToken()) {
       spotifyApi
-        .getMyRecentlyPlayedTracks()
-        .then((data: any) => {
-          setRecentlyPlayed(data.body.items.slice(0, 4));
+        .getMyTopArtists({ limit: 20 })
+        .then((data) => {
+          setTopArtists(data.body.items);
         })
-        .then((err) => {
-          console.log(err);
+        .then(() => {
+          const ids = [];
+          topArtists.map((e) => ids.push(`${e.id}`));
+          spotifyApi
+            .getRecommendations({
+              min_energy: 0.5,
+              seed_artists: ids.slice(0, 5),
+              min_popularity: 50,
+              limit: 3,
+            })
+            .then((data) => {
+              console.log(data.body.tracks);
+
+              setRecommendations(data.body.tracks);
+            })
+            .then((err) => {
+              console.log(err);
+            });
         });
     }
   }, [spotifyApi]);
@@ -40,40 +59,45 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className="h-screen p-8 pt-12">
-      <h1 className="text-2xl text-white">Hello, {session?.user?.name}!</h1>
-      <section className="py-8">
-        <h4 className="pb-8 text-xl text-white">Your recently Played Tracks</h4>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:gap-6">
-          {recentlyPlayed.map((item: any) => (
-            <div
-              key={item.track.id}
-              className="group relative  flex cursor-pointer flex-col justify-center rounded-md bg-gray-900 py-4 px-4 transition-all hover:bg-gray-700"
-              onClick={() => playSong(item.track)}
-            >
+    <div className="h-screen px-4">
+      <section className="py-4">
+        <h4 className="pb-4 text-xl text-black">Popular Artists</h4>
+        <div className="group flex space-x-6 hover:cursor-pointer">
+          {topArtists.slice(0, 5).map((artist) => (
+            <div className="flex w-24 flex-col items-center space-y-2">
               <img
-                className="rounded-sm"
-                src={item.track.album.images[0].url}
-                alt=""
+                className="h-20 rounded-full shadow-md"
+                src={artist.images[0].url}
               />
-              <div className="pt-4">
-                <p className="truncate text-white">{item.track.name}</p>
-                <p
-                  onClick={() =>
-                    router.push(`/artist/${item.track.artists[0].id}`)
-                  }
-                  className="truncate text-gray-400 hover:underline"
-                >
-                  {item.track.artists[0].name}
-                </p>
-              </div>
-              <div className="absolute">
-                <PlayIcon className="hidden h-16 w-16 translate-x-20 translate-y-10 text-spotify-green group-hover:block" />
-              </div>
+              <p className="max-w-24 truncate">{artist.name}</p>
             </div>
           ))}
         </div>
+      </section>
+      <section className="py-4">
+        <h4 className="pb-4 text-xl text-black">Recommended Songs</h4>
+        <div className="flex space-x-6">
+          {recommendations.map((song) => (
+            <div className="group hover:cursor-pointer">
+              <div
+                style={{
+                  backgroundImage: `url(${song.album.images[0].url})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+                className="mb-4 h-56 w-44 rounded-xl shadow-md transition-all group-hover:shadow-lg"
+              ></div>
+              <h6 className="w-20 truncate text-sm">{song.name}</h6>
+              <p className="w-20 truncate text-xs text-gray-500">
+                {song.album.name}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="py-4">
+        <h4 className="pb-4 text-xl text-black">Recently Played</h4>
+        <RecentlyPlayed2 />
       </section>
     </div>
   );
