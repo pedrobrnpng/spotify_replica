@@ -37,9 +37,9 @@ export default NextAuth({
     // ...add more providers here
   ],
   secret: process.env.JWT_SECRET,
-  pages:{
-    signIn: '/login'
-  },
+  // pages:{
+  //   signIn: '/login'
+  // },
   callbacks: {
     async jwt({token, account, user}: any) {
       // initial sign in
