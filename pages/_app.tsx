@@ -3,9 +3,8 @@ import { getSession, SessionProvider } from 'next-auth/react';
 import { RecoilRoot } from 'recoil';
 import '../styles/globals.css';
 import Sidebar from '../components/sidebar';
-import Player from '../components/Player';
-import Profile from '../components/Profile';
 import { useRouter } from 'next/router';
+import RightSideBar from '../components/RightSideBar';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   const router = useRouter();
@@ -14,15 +13,13 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
     <SessionProvider session={session}>
       <RecoilRoot>
         {router.pathname !== '/login' ? (
-          <div className="bg-black">
-            <main className="flex">
+          <div className="bg-pearl">
+            <main className="flex justify-between p-8">
               <Sidebar />
-              <Profile />
               <Component {...pageProps} />
+              <RightSideBar />
             </main>
-            <div className="sticky bottom-0">
-              <Player />
-            </div>
+            <div className="sticky bottom-0"></div>
           </div>
         ) : (
           <Component {...pageProps} />
