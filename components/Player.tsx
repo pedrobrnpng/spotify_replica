@@ -72,13 +72,22 @@ function Player() {
   );
 
   return (
-    <div className="grid h-24 grid-cols-3 bg-gradient-to-b from-black to-gray-900 px-2 text-xs text-white md:px-8 md:text-base">
-      <div className="flex items-center space-x-4">
-        <img
-          className="hidden h-10 w-10 md:inline"
-          src={songInfo?.album?.images[0]?.url}
-          alt=""
-        />
+    <div
+      style={{
+        backgroundImage: `url(${songInfo?.album?.images[0]?.url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+      }}
+      className="flex h-[24rem] w-[20rem] flex-col items-center justify-end overflow-hidden rounded-lg px-2 text-center text-xs text-white drop-shadow-xl md:px-8 md:text-base "
+    >
+      <div
+        className="flex w-[20rem] flex-col items-center space-y-2 p-4"
+        style={{
+          backgroundColor: 'rgba(200,200,200,0.5)',
+          backdropFilter: 'blur(5px)',
+        }}
+      >
         <div>
           <h3
             className="cursor-pointer text-white hover:underline"
@@ -93,51 +102,51 @@ function Player() {
             {songInfo?.artists[0]?.name}
           </p>
         </div>
-      </div>
-      <div className="flex items-center justify-evenly">
-        <SwitchHorizontalIcon className="button" />
-        <RewindIcon
-          onClick={() => spotifyApi.skipToPrevious()}
-          className="button"
-        />
-        {!isPlaying ? (
-          <PlayIcon
-            onClick={() => {
-              handlePlayPause();
-            }}
-            className="button h-10 w-10"
+        <div className="flex items-center justify-evenly space-x-4">
+          <SwitchHorizontalIcon className="button" />
+          <RewindIcon
+            onClick={() => spotifyApi.skipToPrevious()}
+            className="button"
           />
-        ) : (
-          <PauseIcon
-            onClick={() => {
-              handlePlayPause();
-            }}
-            className="button h-10 w-10"
+          {!isPlaying ? (
+            <PlayIcon
+              onClick={() => {
+                handlePlayPause();
+              }}
+              className="button h-10 w-10"
+            />
+          ) : (
+            <PauseIcon
+              onClick={() => {
+                handlePlayPause();
+              }}
+              className="button h-10 w-10"
+            />
+          )}
+          <FastForwardIcon
+            className="button"
+            onClick={() => spotifyApi.skipToNext()}
           />
-        )}
-        <FastForwardIcon
-          className="button"
-          onClick={() => spotifyApi.skipToNext()}
-        />
-        <ReplyIcon className="button" />
-      </div>
-      <div className="flex items-center justify-end space-x-2 pr-5 md:space-x-4">
-        <VolumeDownIcon
-          onClick={() => volume > 0 && setVolume(volume - 10)}
-          className="button"
-        />
-        <input
-          onChange={(e) => setVolume(Number(e.target.value))}
-          className="w-14 md:w-28"
-          type="range"
-          value={volume}
-          min={0}
-          max={100}
-        />
-        <VolumeUpIcon
-          onClick={() => volume < 100 && setVolume(volume + 10)}
-          className="button"
-        />
+          <ReplyIcon className="button" />
+        </div>
+        <div className="flex items-center justify-end space-x-2 pr-5 md:space-x-4">
+          <VolumeDownIcon
+            onClick={() => volume > 0 && setVolume(volume - 10)}
+            className="button"
+          />
+          <input
+            onChange={(e) => setVolume(Number(e.target.value))}
+            className="w-14 md:w-28"
+            type="range"
+            value={volume}
+            min={0}
+            max={100}
+          />
+          <VolumeUpIcon
+            onClick={() => volume < 100 && setVolume(volume + 10)}
+            className="button"
+          />
+        </div>
       </div>
     </div>
   );
