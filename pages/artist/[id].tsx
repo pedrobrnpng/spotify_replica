@@ -1,41 +1,17 @@
 import { PlayIcon } from '@heroicons/react/solid';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Songs from '../../components/songs';
-import useSpotify from '../../hooks/useSpotify';
+import useSpotify, { getSpotify } from '../../hooks/useSpotify';
 import { separateNumberByComma } from '../../lib/number';
 
-function ArtistPage({ artistId }) {
-  const [artist, setArtist] = useState(null);
-  const [followArtist, setFollowArtist] = useState<boolean>();
-  const [topTracks, setTopTracks] = useState<any[]>([]);
-
+function ArtistPage({ artistId, artist, followArtist, topTracks }) {
   const spotifyApi = useSpotify();
-
-  useEffect(() => {
-    if (spotifyApi.getAccessToken()) {
-      spotifyApi
-        .getArtist(artistId)
-        .then((data) => {
-          setArtist(data.body);
-        })
-        .then(() => {
-          spotifyApi.isFollowingArtists([artistId]).then((data) => {
-            setFollowArtist(data.body[0]);
-          });
-        })
-        .then(() => {
-          spotifyApi.getArtistTopTracks(artistId, 'PT').then((data) => {
-            setTopTracks(data.body.tracks.slice(0, 5));
-          });
-        })
-        .catch((err) => console.log('something went wrong', err));
-    }
-  }, [artistId]);
+  const [userFollowsArtist, setUserFollowsArtist] = useState(followArtist);
 
   const follow = () => {
     if (followArtist) spotifyApi.unfollowArtists([artistId]);
     else spotifyApi.followArtists([artistId]);
-    setFollowArtist(!followArtist);
+    setUserFollowsArtist(!userFollowsArtist);
   };
 
   return (
@@ -60,7 +36,7 @@ function ArtistPage({ artistId }) {
           className="h-10 cursor-pointer rounded-sm border-[1px] border-gray-400 px-2 font-semibold uppercase hover:border-white"
           onClick={() => follow()}
         >
-          {followArtist ? 'Following' : 'Follow'}
+          {userFollowsArtist ? 'Following' : 'Follow'}
         </button>
       </div>
       <div className="w-full">
@@ -72,8 +48,28 @@ function ArtistPage({ artistId }) {
 }
 
 export async function getServerSideProps(ctx) {
+  const spotifyApi = await getSpotify(ctx);
+
+  const artistId = ctx.params.id;
+
+  let artist = await spotifyApi.getArtist(artistId).then((data) => {
+    return data.body;
+  });
+
+  let followArtist = await spotifyApi
+    .isFollowingArtists([artistId])
+    .then((data) => {
+      return data.body[0];
+    });
+
+  let topTracks = await spotifyApi
+    .getArtistTopTracks(artistId, 'PT')
+    .then((data) => {
+      return data.body.tracks.slice(0, 5);
+    });
+
   return {
-    props: { artistId: ctx.params.id },
+    props: { artistId, artist, followArtist, topTracks },
   };
 }
 

@@ -1,54 +1,16 @@
-import { PlayIcon } from '@heroicons/react/solid';
-import type { NextPage } from 'next';
-import { getSession, useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { useRecoilState } from 'recoil';
 import { currentTrackIdState } from '../atoms/songAtom';
-import RecentlyPlayed2 from '../components/RecentlyPlayed2';
-import useSpotify from '../hooks/useSpotify';
+import RecentlyPlayed from '../components/RecentlyPlayed';
+import RecommendedSongs from '../components/RecommendedSongs';
+import TopArtists from '../components/TopArtists';
+import useSpotify, { getSpotify } from '../hooks/useSpotify';
 
-const Home: NextPage = () => {
-  const { data: session, status } = useSession();
-
-  const router = useRouter();
-
-  const [recommendations, setRecommendations] = useState([]);
+const Home = ({ topArtists, recommendedSongs, recentlyPlayed }) => {
   const [currentTrackId, setCurrentTrackId] =
     useRecoilState(currentTrackIdState);
 
-  const [topArtists, setTopArtists] = useState([]);
-
   const spotifyApi = useSpotify();
-
-  useEffect(() => {
-    if (spotifyApi.getAccessToken()) {
-      spotifyApi
-        .getMyTopArtists({ limit: 20 })
-        .then((data) => {
-          setTopArtists(data.body.items);
-        })
-        .then(() => {
-          const ids = [];
-          topArtists.map((e) => ids.push(`${e.id}`));
-          spotifyApi
-            .getRecommendations({
-              min_energy: 0.5,
-              seed_artists: ids.slice(0, 5),
-              min_popularity: 50,
-              limit: 3,
-            })
-            .then((data) => {
-              console.log(data.body.tracks);
-
-              setRecommendations(data.body.tracks);
-            })
-            .then((err) => {
-              console.log(err);
-            });
-        });
-    }
-  }, [spotifyApi]);
 
   const playSong = (song) => {
     spotifyApi
@@ -59,56 +21,51 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className="h-screen px-4">
-      <section className="py-4">
-        <h4 className="pb-4 text-xl text-black">Popular Artists</h4>
-        <div className="group flex space-x-6 hover:cursor-pointer">
-          {topArtists.slice(0, 5).map((artist) => (
-            <div className="flex w-24 flex-col items-center space-y-2">
-              <img
-                className="h-20 rounded-full shadow-md"
-                src={artist.images[0].url}
-              />
-              <p className="max-w-24 truncate">{artist.name}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="py-4">
-        <h4 className="pb-4 text-xl text-black">Recommended Songs</h4>
-        <div className="flex space-x-6">
-          {recommendations.map((song) => (
-            <div className="group hover:cursor-pointer">
-              <div
-                style={{
-                  backgroundImage: `url(${song.album.images[0].url})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-                className="mb-4 h-56 w-44 rounded-xl shadow-md transition-all group-hover:shadow-lg"
-              ></div>
-              <h6 className="w-20 truncate text-sm">{song.name}</h6>
-              <p className="w-20 truncate text-xs text-gray-500">
-                {song.album.name}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="py-4">
-        <h4 className="pb-4 text-xl text-black">Recently Played</h4>
-        <RecentlyPlayed2 />
-      </section>
+    <div className="flex flex-col px-8 py-10">
+      <TopArtists topArtists={topArtists} {...playSong} />
+      <RecommendedSongs recommendedSongs={recommendedSongs} {...playSong} />
+      <RecentlyPlayed recentlyPlayed={recentlyPlayed} {...playSong} />
     </div>
   );
 };
 
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
+export const getServerSideProps = async (ctx) => {
+  const spotifyApi = await getSpotify(ctx);
 
-  return {
-    props: { session },
-  };
-}
+  let recentlyPlayed = await spotifyApi
+    .getMyRecentlyPlayedTracks({ limit: 3 })
+    .then((data) => {
+      return data.body.items;
+    });
+
+  let topArtists = await spotifyApi
+    .getMyTopArtists({ limit: 5 })
+    .then((data) => {
+      return data.body.items;
+    })
+    .catch((err) => console.error(err));
+
+  const ids = [];
+  let recommendedSongs;
+  if (topArtists) {
+    topArtists.forEach((artist) => {
+      ids.push(artist.id);
+    });
+
+    recommendedSongs = await spotifyApi
+      .getRecommendations({
+        min_energy: 0.5,
+        min_popularity: 50,
+        seed_artists: ids,
+        limit: 4,
+      })
+      .then((data) => {
+        return data.body.tracks;
+      })
+      .catch((err) => console.error(err));
+  }
+
+  return { props: { recentlyPlayed, topArtists, recommendedSongs } };
+};
 
 export default Home;
