@@ -1,55 +1,36 @@
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
-import { useRecoilState } from 'recoil';
-import { currentTrackIdState } from '../atoms/songAtom';
-import useSpotify from '../hooks/useSpotify';
-import { timePassed } from '../lib/time';
+import React from 'react';
 
-function RecentlyPlayed() {
-  const [recentlyPlayed, setRecentlyPlayed] = useState([]);
-  const [currentTrackId, setCurrentTrackId] =
-    useRecoilState(currentTrackIdState);
-
-  const spotifyApi = useSpotify();
+function RecentlyPlayed({ recentlyPlayed }, playSong) {
   const router = useRouter();
 
-  useEffect(() => {
-    if (spotifyApi.getAccessToken()) {
-      spotifyApi
-        .getMyRecentlyPlayedTracks({ limit: 5 })
-        .then((data: any) => {
-          setRecentlyPlayed(data.body.items);
-        })
-        .then((err) => {
-          console.log(err);
-        });
-    }
-  }, [spotifyApi]);
-
-  const playSong = (song) => {
-    spotifyApi
-      .play({
-        uris: [song.uri],
-      })
-      .then(() => setCurrentTrackId(song.id));
-  };
-
   return (
-    <div>
-      <h4 className="text-2xl">Recently Played</h4>
-      {recentlyPlayed.map((item, idx) => (
-        <div
-          className="my-2 flex justify-between p-4 transition-all hover:cursor-pointer hover:rounded-md hover:bg-pearl-dark"
-          key={`${idx}-${item.track.id}`}
-          onClick={() => playSong(item.track)}
-        >
-          <div className="flex">
+    <div className="flex flex-row items-center space-x-4">
+      <div className="group hover:cursor-pointer">
+        <img
+          className="mb-4 w-40 rounded-xl shadow-md transition-all group-hover:shadow-lg"
+          src={recentlyPlayed[0]?.track.album.images[0].url}
+        />
+        <h6 className="w-20 truncate text-sm">
+          {recentlyPlayed[0]?.track.name}
+        </h6>
+        <p className="w-20 truncate text-xs text-gray-500">
+          {recentlyPlayed[0]?.track.album?.name}
+        </p>
+      </div>
+      <div className="flex w-full flex-col">
+        {recentlyPlayed.slice(1, 3).map((item, idx) => (
+          <div
+            className="my-2 flex rounded-lg bg-[#f4f4f5] p-4 transition-all hover:cursor-pointer hover:rounded-md hover:bg-pearl-dark"
+            key={`${idx}-${item.track.id}`}
+            onClick={() => playSong(item.track)}
+          >
             <img
-              className="h-14 rounded-full"
+              className="h-12 rounded-full sm:h-16"
               src={item.track.album.images[0].url}
             />
             <div className="justify-start pl-4">
-              <p className="w-36 truncate text-black">{item.track.name}</p>
+              <p className="w-20 truncate text-black">{item.track.name}</p>
               <p
                 onClick={() =>
                   router.push(`/artist/${item.track.artists[0].id}`)
@@ -60,10 +41,8 @@ function RecentlyPlayed() {
               </p>
             </div>
           </div>
-
-          <p className="justify-end">{timePassed(item.played_at)}</p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
