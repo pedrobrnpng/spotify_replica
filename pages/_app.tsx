@@ -1,10 +1,9 @@
-import type { AppProps } from 'next/app';
 import { getSession, SessionProvider } from 'next-auth/react';
-import { RecoilRoot } from 'recoil';
-import '../styles/globals.css';
-import Sidebar from '../components/sidebar';
+import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
+import { RecoilRoot } from 'recoil';
 import RightSideBar from '../components/RightSideBar';
+import '../styles/globals.css';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   const router = useRouter();
@@ -14,12 +13,12 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
       <RecoilRoot>
         {router.pathname !== '/login' ? (
           <div className="bg-pearl">
-            <main className="flex justify-between p-8">
-              <Sidebar />
-              <Component {...pageProps} />
+            <main className="flex justify-between overflow-hidden overflow-y-scroll">
+              <div className="bg-pearl lg:pr-[21rem]">
+                <Component {...pageProps} />
+              </div>
               <RightSideBar />
             </main>
-            <div className="sticky bottom-0"></div>
           </div>
         ) : (
           <Component {...pageProps} />
